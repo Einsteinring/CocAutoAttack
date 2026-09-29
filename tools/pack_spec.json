@@ -1,0 +1,23 @@
+{
+  "lang": "ru",
+  "device": "2712x1220, снимки приведены к высоте 540",
+  "templates": {
+    "attack":       {"from": "norm/s01.png", "box": [76, 442, 151, 521]},
+    "find_match":   {"from": "norm/s03.png", "box": [168, 373, 262, 398]},
+    "army_attack":  {"from": "norm/s05.png", "box": [900, 475, 1060, 502]},
+    "next":         {"from": "norm/s06.png", "box": [997, 356, 1128, 390]},
+    "end_battle":   {"from": "norm/s06.png", "box": [70, 389, 168, 417]},
+    "surrender":    {"from": "norm/s07.png", "box": [72, 390, 166, 414]},
+    "return_home":  {"from": "norm/s08.png", "box": [552, 447, 652, 482]},
+    "close":        {"from": "norm/s05.png", "box": [1047, 31, 1076, 55]},
+    "close~2":      {"from": "norm/s11.png", "box": [777, 145, 815, 181]},
+    "close~3":      {"from": "norm/s09.png", "box": [952, 29, 986, 54]},
+    "confirm":      {"from": "norm/s09.png", "box": [733, 441, 853, 461]},
+    "not_enough":   {"from": "norm/s11.png", "box": [512, 141, 684, 166]},
+    "okay":         {"from": "norm/s12.png", "box": [650, 322, 760, 372]},
+    "builder":      {"from": "norm/s10.png", "box": [418, 17, 455, 45]},
+    "builder_free": {"from": "norm/s10.png", "box": [466, 286, 572, 306]},
+    "can_upgrade":  {"from": "norm/s10.png", "box": [466, 314, 582, 331]},
+    "upgrade":      {"from": "norm/s10.png", "box": [505, 437, 592, 456]}
+  }
+}

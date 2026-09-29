@@ -1,0 +1,14 @@
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build
+/app/build
+/captures
+.externalNativeBuild
+.cxx
+# Сырые скриншоты с телефона: на них ник и клан, в репозиторий не кладём
+/raw/
+# Архивы со снимками телефона в корне проекта тоже личные
+/*.zip
