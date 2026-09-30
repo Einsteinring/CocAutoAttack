@@ -13,12 +13,19 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.util.DisplayMetrics
 import android.view.Display
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.kotbaton.cocbot.databinding.ActivityTemplatesBinding
 import com.kotbaton.cocbot.databinding.ItemTemplateBinding
 import kotlinx.coroutines.Dispatchers
@@ -73,65 +80,109 @@ class TemplatesActivity : AppCompatActivity() {
         val needed = vision.missingFor(cfg).toSet()
         val shots = PointPickerActivity.latestScreenshot(this)
         val bundled = vision.bundledCount()
-        b.tvPath.text = buildString {
-            if (bundled > 0) {
-                val lang = vision.bundledLang().ifBlank { "?" }
-                append("Встроено в приложение: $bundled шаблонов, язык игры: $lang. ")
-                append("Свои вырезки важнее встроенных.\n")
-            } else {
-                append("Встроенных шаблонов в этой сборке нет.\n")
-            }
-            append("Файлы хранятся внутри приложения, класть их туда вручную не нужно.")
+        b.tvPath.text = if (bundled > 0) {
+            "Встроено в приложение: $bundled шаблонов, язык игры: ${vision.bundledLang().ifBlank { "?" }}"
+        } else {
+            "Встроенных шаблонов в этой сборке нет"
         }
         b.tvShot.text = if (shots == null) {
             "Снимков экрана пока нет. Нажмите «Скриншот» на главном экране."
         } else {
             val count = vision.screensDir.listFiles { f -> f.name.endsWith(".png", true) }?.size ?: 0
-            "Снимков: $count, последний: ${shots.name}"
+            "Снимков экрана: $count, последний: ${shots.name}"
         }
 
         b.container.removeAllViews()
-        for (info in Vision.catalog()) {
-            val row = ItemTemplateBinding.inflate(layoutInflater, b.container, false)
-            val file = File(vision.templatesDir, "${info.name}.png")
-            val own = file.exists()
-            val inApk = vision.isBundled(info.name)
-            row.tvName.text = (if (own || inApk) "✔ " else "✖ ") + info.name + ".png"
-            val mark = when {
-                info.core -> "обязательный"
-                info.name in needed -> "нужен для включённой функции"
-                else -> "по желанию"
-            }
-            row.tvAbout.text = "${info.about} · $mark"
-            row.tvSize.text = when {
-                own -> "своя, " + sizeOf(file)
-                inApk -> "встроенная"
-                else -> ""
-            }
-            row.btnCut.setOnClickListener { cut(info.name) }
-            row.btnImport.setOnClickListener { importFor(info.name) }
-            row.btnDelete.isEnabled = own
-            row.btnDelete.setOnClickListener {
-                val note = if (inApk) "\nПосле удаления будет использоваться встроенная." else ""
-                AlertDialog.Builder(this)
-                    .setTitle("Удалить свою ${info.name}.png?")
-                    .setMessage(note.trim().ifEmpty { null })
-                    .setNegativeButton("Отмена", null)
-                    .setPositiveButton("Удалить") { _, _ ->
-                        file.delete()
-                        vision.clearCache()
-                        render()
-                    }
-                    .show()
-            }
-            b.container.addView(row.root)
+        val catalog = Vision.catalog()
+        addSection("Обязательные", catalog.filter { it.core }, needed)
+        addSection("Для отдельных функций", catalog.filter { !it.core }, needed)
+    }
+
+    /** Заголовок раздела и карточка со строками шаблонов. */
+    private fun addSection(title: String, items: List<TemplateInfo>, needed: Set<String>) {
+        val header = TextView(this).apply {
+            text = title
+            setTextAppearance(R.style.TextAppearance_CocBot_Section)
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins(dp(2), dp(12), dp(2), dp(8)) }
         }
+        b.container.addView(header)
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            background = ContextCompat.getDrawable(this@TemplatesActivity, R.drawable.bg_card)
+            dividerDrawable = ContextCompat.getDrawable(this@TemplatesActivity, R.drawable.divider)
+            showDividers = LinearLayout.SHOW_DIVIDER_MIDDLE
+        }
+        for (info in items) card.addView(row(info, needed, card))
+        b.container.addView(card)
+    }
+
+    private fun row(info: TemplateInfo, needed: Set<String>, parent: ViewGroup): View {
+        val row = ItemTemplateBinding.inflate(layoutInflater, parent, false)
+        val file = File(vision.templatesDir, "${info.name}.png")
+        val own = file.exists()
+        val inApk = vision.isBundled(info.name)
+        row.tvName.text = "${info.name}.png"
+        val mark = when {
+            info.core -> "обязательный"
+            info.name in needed -> "нужен для включённой функции"
+            else -> "по желанию"
+        }
+        row.tvAbout.text = "${info.about} · $mark"
+        when {
+            own -> badge(row.tvSize, "Своя · ${sizeOf(file)}", R.drawable.bg_pill_accent, R.color.accent)
+            inApk -> badge(row.tvSize, "Встроенная", R.drawable.bg_pill, R.color.text_2)
+            else -> badge(row.tvSize, "Нет", R.drawable.bg_pill_danger, R.color.danger)
+        }
+        row.btnMore.setOnClickListener { v -> showMenu(v, info, own, inApk, file) }
+        return row.root
+    }
+
+    private fun badge(view: TextView, text: String, bg: Int, color: Int) {
+        view.text = text
+        view.setBackgroundResource(bg)
+        view.setTextColor(ContextCompat.getColor(this, color))
+    }
+
+    private fun showMenu(anchor: View, info: TemplateInfo, own: Boolean, inApk: Boolean, file: File) {
+        val menu = PopupMenu(this, anchor, Gravity.END)
+        menu.menuInflater.inflate(R.menu.template_item, menu.menu)
+        menu.menu.findItem(R.id.action_delete).isEnabled = own
+        menu.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_cut -> {
+                    cut(info.name)
+                    true
+                }
+                R.id.action_import -> {
+                    importFor(info.name)
+                    true
+                }
+                R.id.action_delete -> {
+                    val note = if (inApk) "После удаления будет использоваться встроенная." else null
+                    MaterialAlertDialogBuilder(this)
+                        .setTitle("Удалить свою ${info.name}.png?")
+                        .setMessage(note)
+                        .setNegativeButton("Отмена", null)
+                        .setPositiveButton("Удалить") { _, _ ->
+                            file.delete()
+                            vision.clearCache()
+                            render()
+                        }
+                        .show()
+                    true
+                }
+                else -> false
+            }
+        }
+        menu.show()
     }
 
     private fun sizeOf(file: File): String {
         val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(file.absolutePath, opts)
-        return if (opts.outWidth > 0) "${opts.outWidth}×${opts.outHeight} px" else "файл не читается"
+        return if (opts.outWidth > 0) "${opts.outWidth}×${opts.outHeight}" else "файл не читается"
     }
 
     private fun cut(name: String) {
@@ -150,7 +201,7 @@ class TemplatesActivity : AppCompatActivity() {
     private fun chooseName(title: String, onPick: (String) -> Unit) {
         val items = Vision.catalog()
         val labels = items.map { "${it.name}.png — ${it.about}" }.toTypedArray()
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(title)
             .setItems(labels) { _, which -> onPick(items[which].name) }
             .show()
@@ -205,7 +256,7 @@ class TemplatesActivity : AppCompatActivity() {
             val result = withContext(Dispatchers.IO) { runCatching { writeExportZip() } }
             b.btnExport.isEnabled = true
             result.onSuccess { name ->
-                AlertDialog.Builder(this@TemplatesActivity)
+                MaterialAlertDialogBuilder(this@TemplatesActivity)
                     .setTitle("Архив готов")
                     .setMessage(
                         "Файл $name лежит в папке «Загрузки».\n\n" +
@@ -253,6 +304,8 @@ class TemplatesActivity : AppCompatActivity() {
         file.inputStream().use { it.copyTo(zip) }
         zip.closeEntry()
     }
+
+    private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
 
     private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 

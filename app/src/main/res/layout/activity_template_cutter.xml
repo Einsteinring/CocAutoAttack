@@ -8,48 +8,52 @@
         android:id="@+id/tv_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingStart="12dp"
+        android:paddingStart="16dp"
         android:paddingTop="6dp"
-        android:paddingEnd="12dp"
-        android:textSize="14sp"
+        android:paddingEnd="16dp"
+        android:textColor="@color/text"
+        android:textSize="15sp"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/tv_hint"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:paddingBottom="4dp"
-        android:textSize="11sp" />
+        android:paddingStart="16dp"
+        android:paddingTop="2dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="6dp"
+        android:textColor="@color/text_2"
+        android:textSize="12sp" />
 
     <com.kotbaton.cocbot.ScreenshotPickerView
         android:id="@+id/picker"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="#202020" />
+        android:background="@color/surface_inset" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp">
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="16dp">
 
         <ImageView
             android:id="@+id/iv_preview"
             android:layout_width="120dp"
             android:layout_height="46dp"
-            android:background="#22000000"
+            android:background="@drawable/bg_inset"
             android:contentDescription="Предпросмотр вырезки"
             android:scaleType="fitCenter" />
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="12dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -57,13 +61,15 @@
                 android:id="@+id/tv_selection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="12sp" />
+                android:textColor="@color/text"
+                android:textSize="13sp" />
 
             <TextView
                 android:id="@+id/tv_shot"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="11sp" />
+                android:textColor="@color/text_3"
+                android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
 
@@ -71,44 +77,43 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="8dp">
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="12dp">
 
         <Button
             android:id="@+id/btn_prev"
-            style="?attr/materialButtonOutlinedStyle"
+            style="@style/Widget.CocBot.Button.Outlined"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="◀ Снимок"
-            android:textSize="11sp" />
+            android:text="◀ Снимок" />
 
         <Button
             android:id="@+id/btn_next"
-            style="?attr/materialButtonOutlinedStyle"
+            style="@style/Widget.CocBot.Button.Outlined"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
+            android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:text="Снимок ▶"
-            android:textSize="11sp" />
+            android:text="Снимок ▶" />
 
         <Button
             android:id="@+id/btn_clear"
-            style="?attr/materialButtonOutlinedStyle"
+            style="@style/Widget.CocBot.Button.Outlined"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
+            android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:text="Сброс"
-            android:textSize="11sp" />
+            android:text="Сброс" />
 
         <Button
             android:id="@+id/btn_save"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
+            android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:text="Сохранить"
-            android:textSize="11sp" />
+            android:text="Сохранить" />
     </LinearLayout>
 </LinearLayout>

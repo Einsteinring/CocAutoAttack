@@ -1,51 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:paddingStart="16dp"
+    android:paddingTop="4dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="16dp">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Шаблон задаёт, чем и куда высаживаться. Активный отмечен точкой."
-        android:textSize="12sp" />
+        android:lineSpacingMultiplier="1.2"
+        android:paddingStart="2dp"
+        android:paddingEnd="2dp"
+        android:text="Шаблон задаёт, чем и куда высаживаться. Нажмите на строку, чтобы сделать шаблон активным."
+        android:textColor="@color/text_2"
+        android:textSize="13sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="12dp"
         android:orientation="horizontal">
 
         <Button
             android:id="@+id/btn_new"
+            style="@style/Widget.CocBot.Button.Tonal"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Создать"
-            android:textSize="12sp" />
+            app:icon="@drawable/ic_add"
+            app:iconSize="18dp" />
 
         <Button
             android:id="@+id/btn_reset"
-            style="?attr/materialButtonOutlinedStyle"
+            style="@style/Widget.CocBot.Button.Outlined"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
+            android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:text="Вернуть стандартные"
-            android:textSize="12sp" />
+            android:text="Вернуть стандартные" />
     </LinearLayout>
 
-    <ScrollView
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="12dp"
         android:layout_weight="1">
 
-        <LinearLayout
-            android:id="@+id/container"
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-    </ScrollView>
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:id="@+id/container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="vertical"
+                android:showDividers="middle" />
+        </ScrollView>
+    </com.google.android.material.card.MaterialCardView>
 </LinearLayout>

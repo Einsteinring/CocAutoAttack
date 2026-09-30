@@ -71,7 +71,8 @@ object BotStats {
         publish()
     }
 
-    private fun minutes(): Long {
+    /** Минут с начала запуска; ноль, пока бот не стартовал. */
+    fun minutes(): Long {
         if (startedAt == 0L) return 0
         return (System.currentTimeMillis() - startedAt) / 60_000L
     }

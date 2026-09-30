@@ -2,6 +2,7 @@ package com.kotbaton.cocbot
 
 import android.app.Activity
 import android.os.Bundle
+import android.view.View
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -9,7 +10,10 @@ import androidx.appcompat.app.AppCompatActivity
 import com.kotbaton.cocbot.databinding.ActivitySettingsBinding
 import java.util.Locale
 
-/** Общие настройки: панель войск, дела между боями, фильтр добычи, поведение. */
+/**
+ * Общие настройки: запуск, дела между боями, остановка по хранилищам, фильтр добычи, поведение.
+ * Кнопки «Сохранить» нет: всё сохраняется при уходе с экрана.
+ */
 class SettingsActivity : AppCompatActivity() {
 
     private enum class Pick { SLOTS }
@@ -45,18 +49,14 @@ class SettingsActivity : AppCompatActivity() {
         cfg = BotConfig.load(this)
         fillUi()
 
+        b.cbLootFilter.setOnCheckedChangeListener { _, on -> showLootFields(on) }
+        b.btnAdvanced.setOnClickListener { toggleAdvanced() }
         b.btnPickSlots.setOnClickListener {
             openPicker(
                 Pick.SLOTS, PickMode.POINTS, "Карточки войск",
                 "Тапните по каждой карточке слева направо. Порядок = номера, которые вы пишете в шагах шаблона.",
                 cfg.slotPoints.map { it.toString() }, 14
             )
-        }
-        b.btnSave.setOnClickListener {
-            if (save()) {
-                toast("Сохранено")
-                finish()
-            }
         }
     }
 
@@ -85,6 +85,7 @@ class SettingsActivity : AppCompatActivity() {
         b.cbFullElixir.isChecked = cfg.fullElixir
         b.cbFullDark.isChecked = cfg.fullDark
         b.cbLootFilter.isChecked = cfg.lootFilter
+        showLootFields(cfg.lootFilter)
         b.etMinGold.setText(cfg.minGold.toString())
         b.etMinElixir.setText(cfg.minElixir.toString())
         b.etMinDark.setText(cfg.minDark.toString())
@@ -98,8 +99,20 @@ class SettingsActivity : AppCompatActivity() {
         b.tvSlotsInfo.text = if (cfg.slotPoints.isEmpty()) {
             "Карточки считаются по формуле ниже. Точнее — отметить их на скриншоте."
         } else {
-            "Отмечено карточек: ${cfg.slotPoints.size} (формула ниже не используется)"
+            "Отмечено карточек: ${cfg.slotPoints.size}, формула ниже не используется."
         }
+    }
+
+    /** Пороги добычи гаснут, пока фильтр выключен: значения при этом сохраняются. */
+    private fun showLootFields(on: Boolean) {
+        b.groupLoot.alpha = if (on) 1f else 0.45f
+        for (field in listOf(b.etMinGold, b.etMinElixir, b.etMinDark, b.etMaxSkips)) field.isEnabled = on
+    }
+
+    private fun toggleAdvanced() {
+        val show = b.groupAdvanced.visibility != View.VISIBLE
+        b.groupAdvanced.visibility = if (show) View.VISIBLE else View.GONE
+        b.ivAdvancedChevron.animate().rotation(if (show) 180f else 0f).setDuration(150).start()
     }
 
     private fun EditText.int(name: String, min: Int, max: Int): Int? {
@@ -122,15 +135,15 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun save(): Boolean {
         cfg.maxAttacks = b.etMaxAttacks.int("Сколько атак", 1, 10000) ?: return false
-        cfg.threshold = (b.etThreshold.float("Порог", 0.5f, 0.99f) ?: return false).toDouble()
-        cfg.battleTimeoutSec = b.etBattleTimeout.int("Сдаться через", 10, 300) ?: return false
+        cfg.threshold = (b.etThreshold.float("Порог совпадения", 0.5f, 0.99f) ?: return false).toDouble()
+        cfg.battleTimeoutSec = b.etBattleTimeout.int("Сдаться в бою через", 10, 300) ?: return false
         cfg.slotY = b.etSlotY.float("Y карточек", 0f, 1f) ?: return false
         cfg.slotFirstX = b.etSlotFirstX.float("X первой карточки", 0f, 1f) ?: return false
         cfg.slotStepX = b.etSlotStepX.float("Шаг X", 0.01f, 0.5f) ?: return false
         cfg.slotCount = b.etSlotCount.int("Карточек", 1, 14) ?: return false
         cfg.collectResources = b.cbCollect.isChecked
         cfg.autoUpgrade = b.cbUpgrade.isChecked
-        cfg.upgradeEveryAttacks = b.etUpgradeEvery.int("Прокачка раз в N атак", 1, 50) ?: return false
+        cfg.upgradeEveryAttacks = b.etUpgradeEvery.int("Прокачивать раз в N атак", 1, 50) ?: return false
         cfg.stopWhenFull = b.cbStopFull.isChecked
         cfg.fullGold = b.cbFullGold.isChecked
         cfg.fullElixir = b.cbFullElixir.isChecked
@@ -139,8 +152,8 @@ class SettingsActivity : AppCompatActivity() {
         cfg.minGold = b.etMinGold.int("Мин. золото", 0, 20_000_000) ?: return false
         cfg.minElixir = b.etMinElixir.int("Мин. эликсир", 0, 20_000_000) ?: return false
         cfg.minDark = b.etMinDark.int("Мин. чёрный эликсир", 0, 500_000) ?: return false
-        cfg.maxSkips = b.etMaxSkips.int("Макс. пропусков", 0, 200) ?: return false
-        cfg.skipBases = b.etSkipBases.int("Пропустить баз", 0, 50) ?: return false
+        cfg.maxSkips = b.etMaxSkips.int("Не больше пропусков", 0, 200) ?: return false
+        cfg.skipBases = b.etSkipBases.int("Пропускать баз вслепую", 0, 50) ?: return false
         cfg.humanize = b.cbHumanize.isChecked
         cfg.restartGameOnStuck = b.cbRestart.isChecked
         cfg.pauseBetweenMinSec = b.etPauseMin.int("Пауза от", 0, 600) ?: return false
@@ -160,7 +173,7 @@ class SettingsActivity : AppCompatActivity() {
         if (!quiet) Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
 
-    /** Ушли с экрана (в том числе стрелкой назад) и не нажали «Сохранить»: сохраняем то, что введено. */
+    /** Ушли с экрана (в том числе стрелкой назад): сохраняем то, что введено. */
     override fun onPause() {
         quiet = true
         try {

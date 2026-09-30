@@ -1,4 +1,338 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.CocBot" parent="Theme.Material3.DayNight" />
+
+    <!-- Тема всего приложения: всегда тёмная, цвета из colors.xml. -->
+    <style name="Theme.CocBot" parent="Theme.Material3.Dark">
+        <item name="colorPrimary">@color/accent</item>
+        <item name="colorOnPrimary">@color/bg</item>
+        <item name="colorPrimaryContainer">@color/accent_soft</item>
+        <item name="colorOnPrimaryContainer">@color/accent</item>
+        <item name="colorSecondary">@color/text_2</item>
+        <item name="colorOnSecondary">@color/bg</item>
+        <item name="colorSecondaryContainer">@color/segment_selected</item>
+        <item name="colorOnSecondaryContainer">@color/text</item>
+        <item name="colorTertiary">@color/ok</item>
+        <item name="colorError">@color/danger</item>
+        <item name="colorOnError">@color/bg</item>
+
+        <item name="android:colorBackground">@color/bg</item>
+        <item name="colorOnBackground">@color/text</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/text</item>
+        <item name="colorSurfaceVariant">@color/surface_raised</item>
+        <item name="colorOnSurfaceVariant">@color/text_2</item>
+        <item name="colorSurfaceContainer">@color/surface</item>
+        <item name="colorSurfaceContainerLow">@color/bg</item>
+        <item name="colorSurfaceContainerLowest">@color/surface_inset</item>
+        <item name="colorSurfaceContainerHigh">@color/surface_raised</item>
+        <item name="colorSurfaceContainerHighest">@color/segment_selected</item>
+        <item name="colorOutline">@color/border_strong</item>
+        <item name="colorOutlineVariant">@color/border</item>
+        <item name="elevationOverlayEnabled">false</item>
+
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:statusBarColor">@color/bg</item>
+        <item name="android:navigationBarColor">@color/bg</item>
+        <item name="android:textColorPrimary">@color/text</item>
+        <item name="android:textColorSecondary">@color/text_2</item>
+        <item name="android:textColorTertiary">@color/text_3</item>
+        <item name="android:textColorHint">@color/text_3</item>
+
+        <item name="actionBarStyle">@style/Widget.CocBot.ActionBar</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.CocBot.ActionBar</item>
+        <item name="materialButtonStyle">@style/Widget.CocBot.Button</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.CocBot.Button.Outlined</item>
+        <item name="borderlessButtonStyle">@style/Widget.CocBot.Button.Text</item>
+        <item name="textInputStyle">@style/Widget.CocBot.TextInput</item>
+        <item name="materialCardViewStyle">@style/Widget.CocBot.Card</item>
+        <item name="chipStyle">@style/Widget.CocBot.Chip</item>
+        <item name="materialSwitchStyle">@style/Widget.CocBot.Switch</item>
+        <item name="popupMenuStyle">@style/Widget.CocBot.PopupMenu</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.CocBot.Dialog</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.CocBot.Dialog</item>
+    </style>
+
+    <!-- Панель сверху сливается с фоном, заголовок крупнее. -->
+    <style name="Widget.CocBot.ActionBar" parent="Widget.Material3.ActionBar.Solid">
+        <item name="background">@color/bg</item>
+        <item name="elevation">0dp</item>
+        <item name="titleTextStyle">@style/TextAppearance.CocBot.ActionBarTitle</item>
+        <item name="subtitleTextStyle">@style/TextAppearance.CocBot.ActionBarSubtitle</item>
+    </style>
+
+    <style name="ThemeOverlay.CocBot.ActionBar" parent="ThemeOverlay.Material3.Dark.ActionBar">
+        <item name="colorControlNormal">@color/text_2</item>
+        <item name="android:textColorPrimary">@color/text</item>
+    </style>
+
+    <style name="TextAppearance.CocBot.ActionBarTitle" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text</item>
+    </style>
+
+    <style name="TextAppearance.CocBot.ActionBarSubtitle" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textSize">12sp</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textColor">@color/text_3</item>
+    </style>
+
+    <!-- Заголовок раздела: мелкие капители над карточкой или внутри неё. -->
+    <style name="TextAppearance.CocBot.Section" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.06</item>
+        <item name="android:textColor">@color/text_3</item>
+    </style>
+
+    <style name="Widget.CocBot.Card" parent="Widget.Material3.CardView.Outlined">
+        <item name="cardBackgroundColor">@color/surface</item>
+        <item name="strokeColor">@color/border</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="rippleColor">@color/accent_soft</item>
+    </style>
+
+    <!-- Кнопки. Основная — янтарная заливка, одна на экран. -->
+    <style name="Widget.CocBot.Button" parent="Widget.Material3.Button">
+        <item name="android:minHeight">48dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="backgroundTint">@color/btn_primary_bg</item>
+        <item name="android:textColor">@color/btn_primary_text</item>
+        <item name="iconTint">@color/btn_primary_text</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">10dp</item>
+    </style>
+
+    <style name="Widget.CocBot.Button.Large">
+        <item name="android:minHeight">56dp</item>
+        <item name="cornerRadius">14dp</item>
+        <item name="android:textSize">17sp</item>
+    </style>
+
+    <!-- Красная «Остановить». -->
+    <style name="Widget.CocBot.Button.Danger" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:minHeight">56dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="cornerRadius">14dp</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="backgroundTint">@color/danger_soft</item>
+        <item name="strokeColor">@color/danger_border</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="android:textColor">@color/danger</item>
+        <item name="iconTint">@color/danger</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">10dp</item>
+        <item name="rippleColor">@color/danger_soft</item>
+    </style>
+
+    <!-- Тональная: янтарный текст на полупрозрачном янтаре. Второстепенные действия. -->
+    <style name="Widget.CocBot.Button.Tonal" parent="Widget.Material3.Button.TonalButton">
+        <item name="android:minHeight">44dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="backgroundTint">@color/btn_tonal_bg</item>
+        <item name="android:textColor">@color/btn_tonal_text</item>
+        <item name="iconTint">@color/btn_tonal_text</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">8dp</item>
+        <item name="rippleColor">@color/accent_soft</item>
+    </style>
+
+    <style name="Widget.CocBot.Button.Tonal.Small">
+        <item name="android:minHeight">40dp</item>
+        <item name="cornerRadius">10dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:paddingStart">14dp</item>
+        <item name="android:paddingEnd">14dp</item>
+    </style>
+
+    <!-- Обводка на фоне карточки: нейтральные действия. -->
+    <style name="Widget.CocBot.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:minHeight">44dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="backgroundTint">@color/surface</item>
+        <item name="strokeColor">@color/border</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="android:textColor">@color/btn_outlined_text</item>
+        <item name="iconTint">@color/btn_outlined_text</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">8dp</item>
+        <item name="rippleColor">@color/accent_soft</item>
+    </style>
+
+    <!-- Обводка с янтарной надписью: «Нарисовать на скриншоте», «Добавить шаг». -->
+    <style name="Widget.CocBot.Button.Outlined.Accent">
+        <item name="backgroundTint">@color/bg</item>
+        <item name="android:textColor">@color/btn_tonal_text</item>
+        <item name="iconTint">@color/btn_tonal_text</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Плитка инструмента: значок сверху, подпись снизу. -->
+    <style name="Widget.CocBot.Button.Tool" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:minHeight">72dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="cornerRadius">14dp</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:maxLines">2</item>
+        <item name="android:paddingStart">4dp</item>
+        <item name="android:paddingEnd">4dp</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="backgroundTint">@color/surface</item>
+        <item name="strokeColor">@color/border</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="android:textColor">@color/btn_outlined_text</item>
+        <item name="iconTint">@color/btn_tool_icon</item>
+        <item name="iconGravity">top</item>
+        <item name="iconSize">22dp</item>
+        <item name="iconPadding">6dp</item>
+        <item name="rippleColor">@color/accent_soft</item>
+    </style>
+
+    <!-- Текстовая кнопка янтарного цвета: «Очистить», «Сохранить». -->
+    <style name="Widget.CocBot.Button.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="android:minHeight">40dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="cornerRadius">10dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:textColor">@color/btn_tonal_text</item>
+        <item name="iconTint">@color/btn_tonal_text</item>
+        <item name="rippleColor">@color/accent_soft</item>
+    </style>
+
+    <style name="Widget.CocBot.Button.Text.Muted">
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/btn_outlined_text</item>
+        <item name="iconTint">@color/text_2</item>
+    </style>
+
+    <!-- Квадратная кнопка со значком 44×44: карандаш, «ещё», корзина. -->
+    <style name="Widget.CocBot.IconButton" parent="Widget.Material3.Button.IconButton">
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:padding">0dp</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="iconSize">20dp</item>
+        <item name="iconTint">@color/btn_tool_icon</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">0dp</item>
+        <item name="rippleColor">@color/accent_soft</item>
+    </style>
+
+    <!-- Сегмент переключателя режима. -->
+    <style name="Widget.CocBot.Button.Segment" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:minHeight">44dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="cornerRadius">10dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">8dp</item>
+        <item name="strokeColor">@color/border</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="backgroundTint">@color/segment_bg</item>
+        <item name="android:textColor">@color/segment_text</item>
+        <item name="rippleColor">@color/accent_soft</item>
+    </style>
+
+    <!-- Поля ввода: тёмная вставка со скруглением 10dp, подпись сверху. -->
+    <style name="Widget.CocBot.TextInput" parent="Widget.Material3.TextInputLayout.OutlinedBox.Dense">
+        <item name="boxBackgroundColor">@color/surface_inset</item>
+        <item name="boxStrokeColor">@color/text_input_stroke</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">1dp</item>
+        <item name="boxCornerRadiusTopStart">10dp</item>
+        <item name="boxCornerRadiusTopEnd">10dp</item>
+        <item name="boxCornerRadiusBottomStart">10dp</item>
+        <item name="boxCornerRadiusBottomEnd">10dp</item>
+        <item name="hintTextColor">@color/text_2</item>
+        <item name="android:textColorHint">@color/text_3</item>
+        <item name="suffixTextColor">@color/text_3</item>
+        <item name="prefixTextColor">@color/text_3</item>
+        <item name="helperTextTextColor">@color/text_3</item>
+        <item name="errorTextColor">@color/danger</item>
+        <item name="materialThemeOverlay">@style/ThemeOverlay.CocBot.TextInput</item>
+    </style>
+
+    <style name="ThemeOverlay.CocBot.TextInput" parent="ThemeOverlay.Material3.TextInputEditText.OutlinedBox.Dense">
+        <item name="editTextStyle">@style/Widget.CocBot.EditText</item>
+    </style>
+
+    <style name="Widget.CocBot.EditText" parent="Widget.Material3.TextInputEditText.OutlinedBox.Dense">
+        <item name="android:textColor">@color/text</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <!-- Чипы-переключатели: «Золото», «Эликсир», «Чёрный». -->
+    <style name="Widget.CocBot.Chip" parent="Widget.Material3.Chip.Filter">
+        <item name="chipBackgroundColor">@color/chip_bg</item>
+        <item name="chipStrokeColor">@color/chip_stroke</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="android:textColor">@color/chip_text</item>
+        <item name="checkedIconTint">@color/accent</item>
+        <item name="chipMinHeight">40dp</item>
+        <item name="chipCornerRadius">20dp</item>
+        <item name="rippleColor">@color/accent_soft</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
+    <style name="Widget.CocBot.Switch" parent="Widget.Material3.CompoundButton.MaterialSwitch">
+        <item name="trackTint">@color/switch_track</item>
+        <item name="thumbTint">@color/switch_thumb</item>
+        <item name="trackDecorationTint">@android:color/transparent</item>
+    </style>
+
+    <style name="Widget.CocBot.PopupMenu" parent="Widget.Material3.PopupMenu">
+        <item name="android:popupBackground">@drawable/bg_popup</item>
+    </style>
+
+    <style name="ThemeOverlay.CocBot.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorSurface">@color/surface_raised</item>
+        <item name="colorOnSurface">@color/text</item>
+        <item name="colorOnSurfaceVariant">@color/text_2</item>
+        <item name="colorPrimary">@color/accent</item>
+        <item name="android:textColorPrimary">@color/text</item>
+        <item name="materialButtonStyle">@style/Widget.CocBot.Button.Text</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.CocBot.Button.Text</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.CocBot.Button.Text.Muted</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.CocBot.Button.Text.Muted</item>
+    </style>
 </resources>

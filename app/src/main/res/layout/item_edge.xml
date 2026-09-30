@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="36dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/tv_index"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:background="@drawable/bg_badge_edge"
+        android:gravity="center"
+        android:textColor="@color/bg"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tv_coords"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:fontFamily="monospace"
+        android:textColor="@color/text_2"
+        android:textSize="13sp" />
+</LinearLayout>

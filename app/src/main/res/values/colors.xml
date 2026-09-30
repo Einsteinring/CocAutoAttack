@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Палитра «Пульт»: тёплый тёмный фон, один янтарный акцент. -->
+<resources>
+    <color name="bg">#15130F</color>
+    <color name="surface">#1F1C17</color>
+    <color name="surface_inset">#0F0E0B</color>
+    <color name="surface_raised">#2A261F</color>
+    <color name="segment_selected">#3A342B</color>
+    <color name="border">#2F2A22</color>
+    <color name="border_strong">#4A4338</color>
+
+    <color name="text">#F2EDE4</color>
+    <color name="text_2">#B8AF9E</color>
+    <color name="text_3">#948B7D</color>
+    <color name="text_disabled">#6B6357</color>
+
+    <color name="accent">#E8A33D</color>
+    <color name="accent_bright">#F0B75C</color>
+    <color name="accent_soft">#29E8A33D</color>
+    <color name="accent_faint">#14E8A33D</color>
+
+    <color name="ok">#6CC07E</color>
+    <color name="ok_border">#736CC07E</color>
+    <color name="danger">#E5735E</color>
+    <color name="danger_soft">#24E5735E</color>
+    <color name="danger_border">#80E5735E</color>
+    <color name="idle_dot">#6B6357</color>
+</resources>
