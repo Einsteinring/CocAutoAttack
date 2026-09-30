@@ -33,6 +33,7 @@ class BotService : Service() {
         const val ACTION_SCREENSHOT = "com.kotbaton.cocbot.SCREENSHOT"
         const val ACTION_UPGRADE = "com.kotbaton.cocbot.UPGRADE"
         const val ACTION_COLLECT = "com.kotbaton.cocbot.COLLECT"
+        const val ACTION_FARM_FULL = "com.kotbaton.cocbot.FARM_FULL"
         const val ACTION_STOP = "com.kotbaton.cocbot.STOP"
         const val ACTION_CALIBRATE = "com.kotbaton.cocbot.CALIBRATE"
         const val EXTRA_RESULT_CODE = "resultCode"
@@ -74,7 +75,7 @@ class BotService : Service() {
         when (intent?.action) {
             ACTION_STOP -> stopBot("Остановлено пользователем")
             ACTION_CALIBRATE -> showCalibration()
-            ACTION_START, ACTION_TEST, ACTION_SCREENSHOT, ACTION_UPGRADE, ACTION_COLLECT -> startCapture(intent)
+            ACTION_START, ACTION_FARM_FULL, ACTION_TEST, ACTION_SCREENSHOT, ACTION_UPGRADE, ACTION_COLLECT -> startCapture(intent)
         }
         return START_NOT_STICKY
     }
@@ -123,7 +124,7 @@ class BotService : Service() {
         val preset = PresetStore.active(this, cfg.presetName)
         val vision = Vision(this) { cfg.threshold }
         vision.clearCache()
-        val engine = BotEngine(cfg, preset, cap, vision, { BotAccessibilityService.instance }, { relaunchGame() })
+        val engine = BotEngine(cfg, preset, cap, vision, { BotAccessibilityService.instance }, { relaunchGame() }, { closeGame() })
         BotState.running.value = true
         if (overlay.canDraw()) {
             overlay.showStatus("CoC бот") { stopBot("Остановлено через оверлей") }
@@ -135,6 +136,7 @@ class BotService : Service() {
             try {
                 when (action) {
                     ACTION_START -> engine.run()
+                    ACTION_FARM_FULL -> engine.run(farmToFull = true)
                     ACTION_TEST -> engine.runTest(5)
                     ACTION_SCREENSHOT -> engine.screenshot(5)
                     ACTION_UPGRADE -> engine.upgradeOnly()
@@ -149,6 +151,18 @@ class BotService : Service() {
             } finally {
                 mainHandler.post { finish(reason) }
             }
+        }
+    }
+
+    /** Закрывает игру: сначала «Домой», потом завершение фонового процесса игры. */
+    private fun closeGame(): Boolean {
+        return try {
+            val am = getSystemService(ACTIVITY_SERVICE) as android.app.ActivityManager
+            am.killBackgroundProcesses(GAME_PACKAGE)
+            true
+        } catch (e: Exception) {
+            BotState.log("Не удалось закрыть игру: ${e.message}")
+            false
         }
     }
 

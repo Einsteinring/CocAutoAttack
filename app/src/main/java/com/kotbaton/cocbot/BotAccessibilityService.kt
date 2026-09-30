@@ -40,6 +40,9 @@ class BotAccessibilityService : AccessibilityService() {
         super.onDestroy()
     }
 
+    /** Кнопка «Домой»: игра уходит в фон, после этого её процесс можно завершить. */
+    fun goHome(): Boolean = performGlobalAction(GLOBAL_ACTION_HOME)
+
     /** Одиночный тап в пикселях экрана. */
     suspend fun tap(x: Float, y: Float): Boolean {
         val path = Path().apply { moveTo(x, y) }

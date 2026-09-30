@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
 
     private companion object {
-        val UPGRADE_TEMPLATES = setOf("builder", "builder_free", "can_upgrade", "upgrade", "confirm", "not_enough", "close")
+        val UPGRADE_TEMPLATES = setOf("builder", "wall_row", "upgrade", "confirm", "not_enough", "close")
     }
 
     private lateinit var b: ActivityMainBinding
@@ -58,6 +58,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         b = ActivityMainBinding.inflate(layoutInflater)
         setContentView(b.root)
+        title = "${getString(R.string.app_name)} ${appVersion()}"
         cfg = BotConfig.load(this)
         BotState.attachFile(this)
         Vision.migrateOwnTemplates(this)
@@ -70,6 +71,7 @@ class MainActivity : AppCompatActivity() {
         }
         b.btnStart.setOnClickListener { startWithProjection(BotService.ACTION_START) }
         b.btnStop.setOnClickListener { startService(BotService.stopIntent(this)) }
+        b.btnFarmFull.setOnClickListener { startWithProjection(BotService.ACTION_FARM_FULL) }
         b.btnUpgrade.setOnClickListener { startWithProjection(BotService.ACTION_UPGRADE) }
         b.btnCollect.setOnClickListener { startWithProjection(BotService.ACTION_COLLECT) }
         b.btnTest.setOnClickListener { startWithProjection(BotService.ACTION_TEST) }
@@ -97,6 +99,7 @@ class MainActivity : AppCompatActivity() {
                         b.btnTest.isEnabled = !running
                         b.btnScreenshot.isEnabled = !running
                         b.btnUpgrade.isEnabled = !running
+                        b.btnFarmFull.isEnabled = !running
                         b.btnCollect.isEnabled = !running
                     }
                 }
@@ -154,7 +157,7 @@ class MainActivity : AppCompatActivity() {
         if (missingCore.isNotEmpty()) {
             problems += "нет шаблонов: ${missingCore.joinToString()}"
         } else if (cfg.autoUpgrade && missing.any { it in UPGRADE_TEMPLATES }) {
-            problems += "прокачка будет пропущена: нет ${missing.filter { it in UPGRADE_TEMPLATES }.joinToString()}"
+            problems += "прокачка стен будет пропущена: нет ${missing.filter { it in UPGRADE_TEMPLATES }.joinToString()}"
         }
         b.tvReady.text = if (problems.isEmpty()) {
             "✔ Всё готово к запуску"
@@ -174,13 +177,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun startWithProjection(action: String) {
         val needsTaps = action == BotService.ACTION_START ||
+            action == BotService.ACTION_FARM_FULL ||
             action == BotService.ACTION_UPGRADE ||
             action == BotService.ACTION_COLLECT
         if (needsTaps && BotAccessibilityService.instance == null) {
             toast("Сначала включите службу доступности")
             return
         }
-        if (action == BotService.ACTION_START) {
+        if (action == BotService.ACTION_START || action == BotService.ACTION_FARM_FULL) {
             val preset = presets.getOrNull(b.spPreset.selectedItemPosition)
             if (preset == null || preset.steps.isEmpty()) {
                 toast("В выбранном шаблоне нет шагов высадки")
@@ -199,6 +203,14 @@ class MainActivity : AppCompatActivity() {
         } else {
             toast("Clash of Clans не найден, откройте игру вручную")
         }
+    }
+
+    /** Версия из манифеста, например «0.2». */
+    private fun appVersion(): String = try {
+        @Suppress("DEPRECATION")
+        packageManager.getPackageInfo(packageName, 0).versionName ?: ""
+    } catch (e: Exception) {
+        ""
     }
 
     private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()

@@ -12,7 +12,7 @@ import java.util.Locale
 /** Общие настройки: панель войск, дела между боями, фильтр добычи, поведение. */
 class SettingsActivity : AppCompatActivity() {
 
-    private enum class Pick { SLOTS, TARGETS, DESELECT, GOLD, ELIXIR, DARK }
+    private enum class Pick { SLOTS }
 
     private lateinit var b: ActivitySettingsBinding
     private lateinit var cfg: BotConfig
@@ -31,24 +31,10 @@ class SettingsActivity : AppCompatActivity() {
                 if (points.isNotEmpty()) cfg.slotCount = points.size
                 toast("Карточек отмечено: ${points.size}")
             }
-            Pick.TARGETS -> {
-                cfg.upgradeTargets = points.toMutableList()
-                toast("Целей прокачки: ${points.size}")
-            }
-            Pick.DESELECT -> points.firstOrNull()?.let {
-                cfg.deselectPoint = it
-                toast("Точка пустого места: $it")
-            }
-            Pick.GOLD -> cfg.goldRect = rectOf(points) ?: cfg.goldRect
-            Pick.ELIXIR -> cfg.elixirRect = rectOf(points) ?: cfg.elixirRect
-            Pick.DARK -> cfg.darkRect = rectOf(points) ?: cfg.darkRect
         }
         cfg.save(this)
         fillUi()
     }
-
-    private fun rectOf(points: List<PointN>): RectN? =
-        if (points.size >= 2) RectN(points[0].x, points[0].y, points[1].x, points[1].y) else null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,24 +52,6 @@ class SettingsActivity : AppCompatActivity() {
                 cfg.slotPoints.map { it.toString() }, 14
             )
         }
-        b.btnPickTargets.setOnClickListener {
-            openPicker(
-                Pick.TARGETS, PickMode.POINTS, "Цели прокачки",
-                "Откройте свою базу и отметьте здания и участки стен, которые бот будет улучшать. Порядок = очередь обхода.",
-                cfg.upgradeTargets.map { it.toString() }, 40
-            )
-        }
-        b.btnPickDeselect.setOnClickListener {
-            openPicker(
-                Pick.DESELECT, PickMode.SINGLE, "Точка пустого места",
-                "Отметьте пустую землю или небо: тап по ней снимает выделение здания.",
-                listOf(cfg.deselectPoint.toString()), 1
-            )
-        }
-        b.btnRectGold.setOnClickListener { openRect(Pick.GOLD, "Область золота", cfg.goldRect) }
-        b.btnRectElixir.setOnClickListener { openRect(Pick.ELIXIR, "Область эликсира", cfg.elixirRect) }
-        b.btnRectDark.setOnClickListener { openRect(Pick.DARK, "Область чёрного эликсира", cfg.darkRect) }
-
         b.btnSave.setOnClickListener {
             if (save()) {
                 toast("Сохранено")
@@ -101,18 +69,6 @@ class SettingsActivity : AppCompatActivity() {
         picker.launch(PointPickerActivity.intent(this, mode, title, hint, initial, max))
     }
 
-    private fun openRect(what: Pick, title: String, current: RectN) {
-        val initial = if (current.isEmpty) emptyList() else listOf(
-            PointN(current.x1, current.y1).toString(),
-            PointN(current.x2, current.y2).toString(),
-        )
-        openPicker(
-            what, PickMode.RECT, title,
-            "Отметьте два угла прямоугольника вокруг числа на экране выбора базы.",
-            initial, 2
-        )
-    }
-
     private fun fillUi() {
         b.etMaxAttacks.setText(cfg.maxAttacks.toString())
         b.etThreshold.setText(String.format(Locale.US, "%.2f", cfg.threshold))
@@ -122,10 +78,12 @@ class SettingsActivity : AppCompatActivity() {
         b.etSlotStepX.setText(fmtN(cfg.slotStepX))
         b.etSlotCount.setText(cfg.slotCount.toString())
         b.cbCollect.isChecked = cfg.collectResources
-        b.cbTrain.isChecked = cfg.trainTroops
         b.cbUpgrade.isChecked = cfg.autoUpgrade
         b.etUpgradeEvery.setText(cfg.upgradeEveryAttacks.toString())
-        b.etUpgradeMax.setText(cfg.upgradeMaxPerRun.toString())
+        b.cbStopFull.isChecked = cfg.stopWhenFull
+        b.cbFullGold.isChecked = cfg.fullGold
+        b.cbFullElixir.isChecked = cfg.fullElixir
+        b.cbFullDark.isChecked = cfg.fullDark
         b.cbLootFilter.isChecked = cfg.lootFilter
         b.etMinGold.setText(cfg.minGold.toString())
         b.etMinElixir.setText(cfg.minElixir.toString())
@@ -142,15 +100,6 @@ class SettingsActivity : AppCompatActivity() {
         } else {
             "Отмечено карточек: ${cfg.slotPoints.size} (формула ниже не используется)"
         }
-        b.tvTargetsInfo.text = if (cfg.upgradeTargets.isEmpty()) {
-            "Цели не заданы: бот сам выбирает улучшения через меню строителей. Отметьте цели, если хотите решать сами."
-        } else {
-            "Целей прокачки: ${cfg.upgradeTargets.size}, пустое место: ${cfg.deselectPoint}"
-        }
-        val rects = listOf("золото" to cfg.goldRect, "эликсир" to cfg.elixirRect, "чэ" to cfg.darkRect)
-            .filter { !it.second.isEmpty }
-            .joinToString(", ") { it.first }
-        b.tvLootRects.text = if (rects.isEmpty()) "Области чисел добычи не заданы" else "Области заданы: $rects"
     }
 
     private fun EditText.int(name: String, min: Int, max: Int): Int? {
@@ -180,10 +129,12 @@ class SettingsActivity : AppCompatActivity() {
         cfg.slotStepX = b.etSlotStepX.float("Шаг X", 0.01f, 0.5f) ?: return false
         cfg.slotCount = b.etSlotCount.int("Карточек", 1, 14) ?: return false
         cfg.collectResources = b.cbCollect.isChecked
-        cfg.trainTroops = b.cbTrain.isChecked
         cfg.autoUpgrade = b.cbUpgrade.isChecked
         cfg.upgradeEveryAttacks = b.etUpgradeEvery.int("Прокачка раз в N атак", 1, 50) ?: return false
-        cfg.upgradeMaxPerRun = b.etUpgradeMax.int("Целей за заход", 1, 40) ?: return false
+        cfg.stopWhenFull = b.cbStopFull.isChecked
+        cfg.fullGold = b.cbFullGold.isChecked
+        cfg.fullElixir = b.cbFullElixir.isChecked
+        cfg.fullDark = b.cbFullDark.isChecked
         cfg.lootFilter = b.cbLootFilter.isChecked
         cfg.minGold = b.etMinGold.int("Мин. золото", 0, 20_000_000) ?: return false
         cfg.minElixir = b.etMinElixir.int("Мин. эликсир", 0, 20_000_000) ?: return false
@@ -198,15 +149,27 @@ class SettingsActivity : AppCompatActivity() {
             toast("Верхняя граница паузы меньше нижней")
             return false
         }
-        if (cfg.lootFilter && cfg.goldRect.isEmpty && cfg.elixirRect.isEmpty && cfg.darkRect.isEmpty) {
-            toast("Для фильтра добычи задайте хотя бы одну область числа")
-            return false
-        }
         cfg.save(this)
         return true
     }
 
-    private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+    /** Без сообщений: так настройки сохраняются молча, когда пользователь уходит с экрана. */
+    private var quiet = false
+
+    private fun toast(msg: String) {
+        if (!quiet) Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+    }
+
+    /** Ушли с экрана (в том числе стрелкой назад) и не нажали «Сохранить»: сохраняем то, что введено. */
+    override fun onPause() {
+        quiet = true
+        try {
+            save()
+        } finally {
+            quiet = false
+        }
+        super.onPause()
+    }
 
     override fun onSupportNavigateUp(): Boolean {
         finish()

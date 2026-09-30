@@ -60,31 +60,31 @@ class Vision(private val context: Context, private val threshold: () -> Double) 
 
         /** Шаблоны отдельных функций: имя → зачем. */
         val FEATURE = linkedMapOf(
+            "retry" to "кнопка «Попробуйте снова» в окне «Ошибка подключения»",
             "army_attack" to "кнопка «В бой!» в окне «Моя армия»",
             "surrender" to "кнопка «Сдаться» во время боя",
             "close" to "красный крестик окна",
             "okay" to "кнопка «ОК» в подтверждении сдачи",
-            "builder" to "значок строителей вверху экрана",
-            "builder_free" to "строка «Свободен!» в меню строителей",
-            "can_upgrade" to "заголовок «Можно улучшить:» в меню строителей",
+            "builder" to "значок строителей сверху (гоблин или человечек)",
+            "star_bonus" to "заголовок окна «Получен звёздный бонус!»",
+            "star_ok" to "зелёная кнопка «ОК» в окне звёздного бонуса",
+            "walls_dialog" to "заголовок окна «Улучшить стены» с кнопками «Отмена» и «ОК»",
+            "cancel" to "оранжевая кнопка «Отмена»",
+            "no_builders" to "цифра «0» в счётчике строителей «0/7»: свободных нет",
+            "menu_head" to "заголовок «Идёт улучшение» в списке строителей",
+            "can_upgrade" to "заголовок «Можно улучшить» в списке строителей",
+            "wall_row" to "слово «Стена» в списке строителей",
             "upgrade" to "кнопка «Улучшить» у выбранного здания",
             "confirm" to "кнопка «Подтвердить» в окне улучшения",
             "not_enough" to "заголовок «Не хватает» в окне нехватки ресурсов",
-            "collect" to "пузырь сбора ресурсов",
-            "train_troops" to "кнопка армии/тренировки",
-            "quick_train" to "вкладка быстрой тренировки",
-            "train_preset" to "кнопка «Тренировать» у шаблона армии",
+            "collect" to "пузырь сбора ресурсов над шахтой или сборщиком",
         )
-
-        /** Цифры для чтения добычи. */
-        val DIGITS = (0..9).map { "d$it" }
 
         /** Полный список шаблонов для экрана «Шаблоны кнопок». */
         fun catalog(): List<TemplateInfo> {
-            val out = ArrayList<TemplateInfo>(CORE.size + FEATURE.size + DIGITS.size)
+            val out = ArrayList<TemplateInfo>(CORE.size + FEATURE.size)
             CORE.forEach { out += TemplateInfo(it, CORE_ABOUT[it] ?: it, true) }
             FEATURE.forEach { (n, about) -> out += TemplateInfo(n, about, false) }
-            DIGITS.forEachIndexed { i, n -> out += TemplateInfo(n, "цифра $i из числа добычи", false) }
             return out
         }
 
@@ -202,16 +202,8 @@ class Vision(private val context: Context, private val threshold: () -> Double) 
     /** Каких шаблонов не хватает для включённых в настройках функций. */
     fun missingFor(cfg: BotConfig): List<String> {
         val need = CORE.toMutableList()
-        if (cfg.autoUpgrade) {
-            need += if (cfg.upgradeTargets.isEmpty()) {
-                listOf("builder", "builder_free", "can_upgrade", "upgrade", "confirm", "not_enough", "close")
-            } else {
-                listOf("upgrade", "confirm", "not_enough", "close")
-            }
-        }
+        if (cfg.autoUpgrade) need += listOf("builder", "no_builders", "wall_row", "upgrade", "confirm", "not_enough", "close")
         if (cfg.collectResources) need += "collect"
-        if (cfg.trainTroops) need += listOf("train_troops", "quick_train", "train_preset")
-        if (cfg.lootFilter) need += DIGITS
         return need.distinct().filter { !has(it) }
     }
 
@@ -279,6 +271,24 @@ class Vision(private val context: Context, private val threshold: () -> Double) 
         out to s
     }
 
+    /** Кадр в рабочем масштабе (высота 540) как массив ARGB: ширина и высота в результате. */
+    fun workPixels(screen: Bitmap): Triple<IntArray, Int, Int>? {
+        if (!ensureLoaded()) return null
+        val (mat, _) = prepare(screen)
+        val w = mat.cols()
+        val h = mat.rows()
+        val bytes = ByteArray(w * h * 3)
+        synchronized(lock) { mat.get(0, 0, bytes) }
+        val out = IntArray(w * h)
+        for (i in out.indices) {
+            val b = bytes[i * 3].toInt() and 0xFF
+            val g = bytes[i * 3 + 1].toInt() and 0xFF
+            val r = bytes[i * 3 + 2].toInt() and 0xFF
+            out[i] = (0xFF shl 24) or (r shl 16) or (g shl 8) or b
+        }
+        return Triple(out, w, h)
+    }
+
     /** Лучшее совпадение, если оно не хуже порога. */
     fun find(screen: Bitmap, name: String): Match? {
         val m = best(screen, name) ?: return null
@@ -292,6 +302,10 @@ class Vision(private val context: Context, private val threshold: () -> Double) 
     /** Все совпадения выше порога, от лучшего к худшему. */
     fun findAll(screen: Bitmap, name: String, maxCount: Int = 16, minScore: Double = threshold()): List<Match> =
         search(screen, name, maxCount, minScore, roi = null)
+
+    /** Самое правое из найденных совпадений: из двух значков строителей и помощников нужен правый. */
+    fun findRightmost(screen: Bitmap, name: String, minScore: Double = threshold()): Match? =
+        findAll(screen, name, maxCount = 6, minScore = minScore).maxByOrNull { it.x }
 
     /** Самое левое из найденных совпадений: так отличаем обычный «Подбор» от рангового справа. */
     fun findLeftmost(screen: Bitmap, name: String, minScore: Double = threshold()): Match? =

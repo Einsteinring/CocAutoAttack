@@ -162,47 +162,10 @@
             android:text="Собирать ресурсы со сборщиков" />
 
         <CheckBox
-            android:id="@+id/cb_train"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Заказывать войска (быстрая тренировка)" />
-
-        <CheckBox
             android:id="@+id/cb_upgrade"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Авто-прокачка зданий и стен" />
-
-        <TextView
-            android:id="@+id/tv_targets_info"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="11sp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btn_pick_targets"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Цели прокачки"
-                android:textSize="12sp" />
-
-            <Button
-                android:id="@+id/btn_pick_deselect"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:text="Точка пустого места"
-                android:textSize="12sp" />
-        </LinearLayout>
+            android:text="Прокачивать стены" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -221,20 +184,47 @@
                     android:layout_height="wrap_content"
                     android:inputType="number" />
             </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Остановка по хранилищам"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <CheckBox
+            android:id="@+id/cb_stop_full"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Остановиться, когда хранилища заполнены (после прокачки стен)" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/cb_full_gold"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:hint="Целей за заход">
+                android:text="Золото" />
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/et_upgrade_max"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="number" />
-            </com.google.android.material.textfield.TextInputLayout>
+            <CheckBox
+                android:id="@+id/cb_full_elixir"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Эликсир" />
+
+            <CheckBox
+                android:id="@+id/cb_full_dark"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Чёрный" />
         </LinearLayout>
 
         <TextView
@@ -249,7 +239,7 @@
             android:id="@+id/cb_loot_filter"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Фильтр добычи (нужны шаблоны цифр d0..d9)" />
+            android:text="Фильтр добычи: пропускать бедные базы (каждое «Далее» стоит золота)" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -315,47 +305,6 @@
                     android:layout_height="wrap_content"
                     android:inputType="number" />
             </com.google.android.material.textfield.TextInputLayout>
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/tv_loot_rects"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="11sp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btn_rect_gold"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Область золота"
-                android:textSize="11sp" />
-
-            <Button
-                android:id="@+id/btn_rect_elixir"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:text="Область эликсира"
-                android:textSize="11sp" />
-
-            <Button
-                android:id="@+id/btn_rect_dark"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:text="Область ЧЭ"
-                android:textSize="11sp" />
         </LinearLayout>
 
         <com.google.android.material.textfield.TextInputLayout

@@ -30,18 +30,16 @@ class OverlayController(private val ctx: Context) {
         var flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-        flags = if (fullscreen) {
-            flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-        } else {
-            flags or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-        }
+        // Оба окна сквозные для касаний: плашка иначе перехватывала бы тапы бота по игре.
+        flags = flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
         val p = WindowManager.LayoutParams(
             size, size,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             flags,
             PixelFormat.TRANSLUCENT
         )
-        p.gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+        // Плашка в левом верхнем углу: вверху по центру у игры значки строителей, там же края высадки.
+        p.gravity = if (fullscreen) Gravity.TOP or Gravity.CENTER_HORIZONTAL else Gravity.TOP or Gravity.START
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             p.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
@@ -55,9 +53,11 @@ class OverlayController(private val ctx: Context) {
                 setText(text)
                 setTextColor(Color.WHITE)
                 setBackgroundColor(0xAA000000.toInt())
-                setPadding(24, 8, 24, 8)
-                textSize = 12f
-                setOnClickListener { onClick() }
+                setPadding(16, 4, 16, 4)
+                textSize = 10f
+                maxLines = 1
+                ellipsize = android.text.TextUtils.TruncateAt.END
+                maxWidth = (ctx.resources.displayMetrics.widthPixels * 0.22f).toInt()
             }
             try {
                 wm.addView(tv, params(fullscreen = false))
@@ -69,7 +69,7 @@ class OverlayController(private val ctx: Context) {
     }
 
     fun updateStatus(text: String) {
-        handler.post { statusView?.text = "$text (тап = стоп)" }
+        handler.post { statusView?.text = text }
     }
 
     fun hideStatus() {
@@ -137,16 +137,6 @@ class CalibrationView(
         strokeWidth = 3f
         style = Paint.Style.STROKE
     }
-    private val targetPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.GREEN
-        strokeWidth = 3f
-        style = Paint.Style.STROKE
-    }
-    private val rectPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.MAGENTA
-        strokeWidth = 3f
-        style = Paint.Style.STROKE
-    }
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
         textSize = 28f
@@ -176,16 +166,9 @@ class CalibrationView(
             canvas.drawText("${s + 1}", p.x * w - 8f, p.y * h - 30f, textPaint)
         }
 
-        cfg.upgradeTargets.forEachIndexed { i, p ->
-            canvas.drawCircle(p.x * w, p.y * h, 18f, targetPaint)
-            canvas.drawText("${i + 1}", p.x * w + 20f, p.y * h, textPaint)
-        }
 
-        listOf(cfg.goldRect, cfg.elixirRect, cfg.darkRect).forEach { r ->
-            if (!r.isEmpty) canvas.drawRect(r.left * w, r.top * h, r.right * w, r.bottom * h, rectPaint)
-        }
 
         canvas.drawText("Шаблон: ${preset.name}", 24f, 44f, textPaint)
-        canvas.drawText("красное — края, голубое — карточки, зелёное — цели прокачки", 24f, 80f, textPaint)
+        canvas.drawText("красное — края высадки, голубое — карточки войск", 24f, 80f, textPaint)
     }
 }

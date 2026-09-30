@@ -129,12 +129,29 @@ class ConfigFormatTest {
     fun `настройки переживают запись в JSON`() {
         val cfg = BotConfig()
         cfg.presetName = "Фарм"
-        cfg.upgradeTargets = mutableListOf(PointN(0.2f, 0.3f), PointN(0.4f, 0.5f))
-        cfg.goldRect = RectN(0.8f, 0.1f, 0.9f, 0.16f)
+        cfg.fullDark = true
+        cfg.minGold = 400_000
         val json = cfg.toJson()
         assertEquals("Фарм", json.getString("presetName"))
-        assertEquals(2, json.getJSONArray("upgradeTargets").length())
-        assertEquals(cfg.goldRect.toString(), json.getString("goldRect"))
+        assertTrue(json.getBoolean("fullDark"))
+        assertTrue(json.getBoolean("stopWhenFull"))
+        assertEquals(400_000, json.getInt("minGold"))
+    }
+
+    @Test
+    fun `фильтр добычи пропускает бедные базы и не блокирует нераспознанное`() {
+        val cfg = BotConfig()
+        cfg.minGold = 300_000
+        cfg.minElixir = 300_000
+        cfg.minDark = 5_000
+        assertTrue(Loot(351_561, 444_968, 8_884).passes(cfg))
+        assertTrue(!Loot(63_881, 271_936, 524).passes(cfg))
+        assertTrue(!Loot(400_000, 250_000, 9_000).passes(cfg))
+        assertTrue(!Loot(400_000, 400_000, 2_000).passes(cfg))
+        // Число не прочиталось: базу не отбрасываем, иначе бот мог бы вечно пропускать хорошие.
+        assertTrue(Loot(-1, 400_000, 9_000).passes(cfg))
+        cfg.minDark = 0
+        assertTrue(Loot(400_000, 400_000, 0).passes(cfg))
     }
 
     @Test

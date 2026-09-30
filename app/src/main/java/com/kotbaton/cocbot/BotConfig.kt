@@ -35,25 +35,22 @@ class BotConfig {
     // --- Между боями ---
 
     /** Собирать ресурсы со сборщиков перед атакой. */
-    var collectResources = false
+    var collectResources = true
 
-    /** Заказывать войска (армия → быстрая тренировка → шаблон армии). */
-    var trainTroops = false
-
-    /** Авто-прокачка целей из [upgradeTargets]. */
+    /** Авто-прокачка стен. */
     var autoUpgrade = true
 
     /** Прокачивать раз в N атак. */
     var upgradeEveryAttacks = 1
 
-    /** Сколько целей обходить за один заход. */
-    var upgradeMaxPerRun = 8
 
-    /** Точки зданий и стен на своей базе, по которым бот жмёт «Улучшить». */
-    var upgradeTargets: MutableList<PointN> = mutableListOf()
+    /** Остановиться, когда хранилища заполнены. Действует, когда стены больше не улучшаются. */
+    var stopWhenFull = true
 
-    /** Точка пустого места на базе: тап по ней снимает выделение здания. */
-    var deselectPoint = PointN(0.5f, 0.2f)
+    /** Какие хранилища должны быть полными. Чёрный эликсир копится медленно, по умолчанию не ждём его. */
+    var fullGold = true
+    var fullElixir = true
+    var fullDark = false
 
     // --- Фильтр добычи ---
 
@@ -64,10 +61,6 @@ class BotConfig {
     var minDark = 0
     var maxSkips = 25
 
-    /** Области с числами добычи на экране выбора базы (доли экрана). */
-    var goldRect = RectN.NONE
-    var elixirRect = RectN.NONE
-    var darkRect = RectN.NONE
 
     /** Сколько баз пропустить вслепую, когда фильтр выключен. */
     var skipBases = 0
@@ -98,20 +91,17 @@ class BotConfig {
         put("slotCount", slotCount)
         put("slotPoints", JSONArray().apply { slotPoints.forEach { put(it.toString()) } })
         put("collectResources", collectResources)
-        put("trainTroops", trainTroops)
         put("autoUpgrade", autoUpgrade)
         put("upgradeEveryAttacks", upgradeEveryAttacks)
-        put("upgradeMaxPerRun", upgradeMaxPerRun)
-        put("upgradeTargets", JSONArray().apply { upgradeTargets.forEach { put(it.toString()) } })
-        put("deselectPoint", deselectPoint.toString())
+        put("stopWhenFull", stopWhenFull)
+        put("fullGold", fullGold)
+        put("fullElixir", fullElixir)
+        put("fullDark", fullDark)
         put("lootFilter", lootFilter)
         put("minGold", minGold)
         put("minElixir", minElixir)
         put("minDark", minDark)
         put("maxSkips", maxSkips)
-        put("goldRect", goldRect.toString())
-        put("elixirRect", elixirRect.toString())
-        put("darkRect", darkRect.toString())
         put("skipBases", skipBases)
         put("humanize", humanize)
         put("pauseBetweenMinSec", pauseBetweenMinSec)
@@ -151,20 +141,17 @@ class BotConfig {
                 c.slotCount = j.optInt("slotCount", c.slotCount)
                 c.slotPoints = points(j, "slotPoints")
                 c.collectResources = j.optBoolean("collectResources", c.collectResources)
-                c.trainTroops = j.optBoolean("trainTroops", c.trainTroops)
                 c.autoUpgrade = j.optBoolean("autoUpgrade", c.autoUpgrade)
                 c.upgradeEveryAttacks = j.optInt("upgradeEveryAttacks", c.upgradeEveryAttacks)
-                c.upgradeMaxPerRun = j.optInt("upgradeMaxPerRun", c.upgradeMaxPerRun)
-                c.upgradeTargets = points(j, "upgradeTargets")
-                PointN.parse(j.optString("deselectPoint"))?.let { c.deselectPoint = it }
+                c.stopWhenFull = j.optBoolean("stopWhenFull", c.stopWhenFull)
+                c.fullGold = j.optBoolean("fullGold", c.fullGold)
+                c.fullElixir = j.optBoolean("fullElixir", c.fullElixir)
+                c.fullDark = j.optBoolean("fullDark", c.fullDark)
                 c.lootFilter = j.optBoolean("lootFilter", c.lootFilter)
                 c.minGold = j.optInt("minGold", c.minGold)
                 c.minElixir = j.optInt("minElixir", c.minElixir)
                 c.minDark = j.optInt("minDark", c.minDark)
                 c.maxSkips = j.optInt("maxSkips", c.maxSkips)
-                RectN.parse(j.optString("goldRect"))?.let { c.goldRect = it }
-                RectN.parse(j.optString("elixirRect"))?.let { c.elixirRect = it }
-                RectN.parse(j.optString("darkRect"))?.let { c.darkRect = it }
                 c.skipBases = j.optInt("skipBases", c.skipBases)
                 c.humanize = j.optBoolean("humanize", c.humanize)
                 c.pauseBetweenMinSec = j.optInt("pauseBetweenMinSec", c.pauseBetweenMinSec)
