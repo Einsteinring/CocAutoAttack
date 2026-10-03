@@ -62,13 +62,13 @@ class StorageBarsTest {
     private fun drawn(gold: Double, elixir: Double, dark: Double, gapAt: Int = -1): IntArray {
         val px = IntArray(frameW * frameH) { 0xFF2A2A2A.toInt() }
         val right = frameW - 103
-        val left = frameW - 249
-        val width = right - left + 1
+        val lefts = intArrayOf(frameW - 249, frameW - 249, frameW - 201)
+
         val rows = intArrayOf(40, 90, 140)
         val colors = intArrayOf(goldColor, elixirColor, darkColor)
         val parts = doubleArrayOf(gold, elixir, dark)
         for (k in 0..2) {
-            val n = Math.round(parts[k] * width).toInt()
+            val n = Math.round(parts[k] * (right - lefts[k] + 1)).toInt()
             for (dy in -3..3) {
                 for (i in 0 until n) {
                     val x = right - i
@@ -89,17 +89,38 @@ class StorageBarsTest {
     }
 
     @Test
-    fun `пустые хранилища на кадре с малыми запасами`() = assertFill(real("s01"), 0.075, 0.088, 0.456)
+    fun `пустые хранилища на кадре с малыми запасами`() = assertFill(real("s01"), 0.075, 0.088, 0.68)
 
     @Test
-    fun `заполнены наполовину`() = assertFill(real("s13"), 0.578, 0.544, 0.537)
+    fun `заполнены наполовину`() = assertFill(real("s13"), 0.578, 0.544, 0.80)
 
     @Test
     fun `почти полные, но полными не считаются`() {
         val px = real("s21")
-        assertFill(px, 0.816, 0.789, 0.673)
+        assertFill(px, 0.816, 0.789, 1.0)
         val f = StorageBars.read(px, frameW, frameH)!!
         assertTrue(f.gold < StorageBars.FULL && f.elixir < StorageBars.FULL)
+    }
+
+    @Test
+    fun `затемнённый кадр под открытым окном читается так же`() {
+        val px = real("s21")
+        val dim = IntArray(px.size) { i ->
+            val p = px[i]
+            val r = ((p shr 16) and 0xFF) / 2
+            val g = ((p shr 8) and 0xFF) / 2
+            val b = (p and 0xFF) / 2
+            (0xFF shl 24) or (r shl 16) or (g shl 8) or b
+        }
+        assertFill(dim, 0.816, 0.789, 1.0)
+    }
+
+    @Test
+    fun `настоящий кадр с полными хранилищами 21 500 000, 22 000 000 и 390 000`() {
+        val f = StorageBars.read(real("s31"), frameW, frameH)!!
+        assertTrue("золото ${f.gold}", f.gold >= StorageBars.FULL)
+        assertTrue("эликсир ${f.elixir}", f.elixir >= StorageBars.FULL)
+        assertTrue("чёрный эликсир ${f.dark}", f.dark >= StorageBars.FULL)
     }
 
     @Test

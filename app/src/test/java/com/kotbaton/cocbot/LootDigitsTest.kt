@@ -75,6 +75,16 @@ class LootDigitsTest {
     }
 
     @Test
+    fun `обрезанное число не читается как меньшее`() {
+        val (px, w, h) = load("s17")
+        // Стираем две последние цифры золота «1 388 737»: остаётся «1 388 7».
+        for (y in 66..100) for (x in 154..200) px[y * w + x] = 0xFF203020.toInt()
+        assertNull("получилось ${LootDigits.read(px, w, h, 0)}", LootDigits.read(px, w, h, 0))
+        // Эликсир на том же кадре не тронут и читается целиком.
+        assertEquals(1390128, LootDigits.read(px, w, h, 1))
+    }
+
+    @Test
     fun `на пустом кадре чисел нет`() {
         val w = 1200
         val px = IntArray(w * Vision.WORK_HEIGHT) { 0xFF203020.toInt() }

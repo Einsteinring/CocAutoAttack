@@ -73,6 +73,28 @@ class BotEngine(
         log(msg)
     }
 
+    /**
+     * Служба для тапа. Если игра свёрнута или поверх неё открыто другое приложение (в том числе
+     * сам бот), ждёт её возвращения: иначе тапы попадали бы в чужое окно и бота было бы не остановить.
+     */
+    private suspend fun svc(): BotAccessibilityService {
+        awaitGame()
+        return service()
+    }
+
+    private suspend fun awaitGame() {
+        if (BotAccessibilityService.gameOnScreen()) return
+        val before = BotState.status.value
+        status("Пауза: игра не на экране. Вернитесь в игру или нажмите «Стоп»")
+        while (!BotAccessibilityService.gameOnScreen()) {
+            currentCoroutineContext().ensureActive()
+            delay(500)
+        }
+        log("Игра снова на экране, продолжаю")
+        delay(1500)
+        BotState.status.value = before
+    }
+
     private fun service(): BotAccessibilityService =
         accessibility() ?: throw IllegalStateException("Служба доступности не включена")
 
@@ -136,11 +158,11 @@ class BotEngine(
     private fun jitter(amp: Float = 4f): Float = (rnd.nextFloat() * 2f - 1f) * amp
 
     private suspend fun tapPoint(p: PointN, amp: Float = 4f) {
-        service().tap(p.x * w + jitter(amp), p.y * h + jitter(amp))
+        svc().tap(p.x * w + jitter(amp), p.y * h + jitter(amp))
     }
 
     private suspend fun tapMatch(m: Match, settleMs: Long = 350) {
-        service().tap(m.cx + jitter(), m.cy + jitter())
+        svc().tap(m.cx + jitter(), m.cy + jitter())
         pause(settleMs)
     }
 
@@ -246,7 +268,7 @@ class BotEngine(
             tapMatch(ok, 1200)
         } else {
             // Кнопка «ОК» стоит по центру под заголовком, на 0,745 высоты экрана ниже него.
-            service().tap(title.cx + jitter(3f), title.cy + 0.745f * h + jitter(3f))
+            svc().tap(title.cx + jitter(3f), title.cy + 0.745f * h + jitter(3f))
             pause(1200)
         }
         return true
@@ -431,7 +453,7 @@ class BotEngine(
     /** Листает список вверх на треть окна: строки между экранами не пропускаются. */
     private suspend fun scrollList() {
         val x = 0.51f * w
-        service().swipe(x, 0.74f * h, x, 0.42f * h, 700)
+        svc().swipe(x, 0.74f * h, x, 0.42f * h, 700)
         pause(800)
     }
 
@@ -485,7 +507,7 @@ class BotEngine(
             val goldNow = if (attempt == 0) goldFirst else !goldFirst
             val target = if (goldNow) gold else elixir
             log("Улучшаю стену за ${if (goldNow) "золото" else "эликсир"}")
-            service().tap(target.x + jitter(2f), target.y + jitter(2f))
+            svc().tap(target.x + jitter(2f), target.y + jitter(2f))
             pause(1000)
             val answer = waitFor(4, 500, "confirm", "walls_dialog")
             if (answer?.first == "walls_dialog") {
@@ -605,6 +627,18 @@ class BotEngine(
         return withScreen { s -> vision.workPixels(s)?.let { (px, w, h) -> StorageBars.read(px, w, h) } }
     }
 
+    private var storageDebugSaved = false
+
+    /** Какие хранилища бот ждёт полными, словами для лога. */
+    private fun waitingFor(): String {
+        val names = listOfNotNull(
+            "золото".takeIf { cfg.fullGold },
+            "эликсир".takeIf { cfg.fullElixir },
+            "чёрный эликсир".takeIf { cfg.fullDark },
+        )
+        return if (names.isEmpty()) "ничего не выбрано в настройках, остановлюсь только по числу атак" else names.joinToString(", ")
+    }
+
     /** Все выбранные в настройках хранилища заполнены. Если не выбрано ни одного, считается, что нет. */
     private fun isFull(f: StorageBars.Fill): Boolean {
         val checks = listOf(cfg.fullGold to f.gold, cfg.fullElixir to f.elixir, cfg.fullDark to f.dark)
@@ -717,7 +751,6 @@ class BotEngine(
     }
 
     private suspend fun deploy() {
-        val svc = service()
         detectCards()
         val perEdge = preset.pointsPerEdge.coerceAtLeast(1)
         val edges = preset.effectiveEdges(w.toFloat() / h).ifEmpty { AttackPreset.mapEdges(w.toFloat() / h) }
@@ -737,7 +770,22 @@ class BotEngine(
                 val t = if (perEdge <= 1) 0.5f else idx.toFloat() / (perEdge - 1)
                 points += edgePoint(edge, t)
             }
-            svc.tapSequence(points, preset.tapIntervalMs)
+            svc().tapSequence(points, preset.tapIntervalMs)
+            if (preset.autoEdges) {
+                // Добор: часть тапов попадает в запретную зону у построек, стоящих у самого края.
+                // Те же края, но у кромки травы и между прежними точками, где точно можно высаживать.
+                val outer = AttackPreset.mapEdges(w.toFloat() / h, AttackPreset.OUTER_REACH)
+                val outerEdges = step.edges.mapNotNull { outer.getOrNull(it) }.ifEmpty { outer }
+                val extra = max(4, step.count / 3)
+                val more = ArrayList<PointF>(extra)
+                for (k in 0 until extra) {
+                    val edge = outerEdges[k % outerEdges.size]
+                    val idx = (k / outerEdges.size) % perEdge
+                    val t = ((idx + 0.5f) / perEdge).coerceIn(0f, 1f)
+                    more += edgePoint(edge, t)
+                }
+                svc().tapSequence(more, preset.tapIntervalMs)
+            }
             pause(step.delayAfterMs)
         }
         val stepsDoneAt = System.currentTimeMillis()
@@ -750,7 +798,7 @@ class BotEngine(
                 currentCoroutineContext().ensureActive()
                 if (!tapSlot(slot)) continue
                 val p = edgePoint(heroEdges[i % heroEdges.size], 0.5f)
-                svc.tap(p.x, p.y)
+                svc().tap(p.x, p.y)
                 pause(400)
             }
             heroesAt = System.currentTimeMillis()
@@ -907,10 +955,14 @@ class BotEngine(
             val onlyFarming = farmToFull || !cfg.autoUpgrade || wallsDone || wallsBlocked
             if (onlyFarming && (farmToFull || cfg.stopWhenFull)) {
                 val fill = readStorages()
-                if (fill == null) {
-                    log("Не удалось прочитать полосы хранилищ")
+                if (fill == null || (fill.gold == 0.0 && fill.elixir == 0.0 && fill.dark == 0.0)) {
+                    log("Полосы хранилищ не прочитались: на экране, видимо, открыто окно")
+                    if (!storageDebugSaved) {
+                        storageDebugSaved = true
+                        saveDebug("хранилища")
+                    }
                 } else {
-                    log("Хранилища: $fill")
+                    log("Хранилища: $fill · жду: ${waitingFor()}")
                     if (isFull(fill)) {
                         status("Хранилища заполнены ($fill). Готово: $done атак")
                         return

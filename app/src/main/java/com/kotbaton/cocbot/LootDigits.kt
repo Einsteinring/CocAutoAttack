@@ -18,6 +18,12 @@ internal object LootDigits {
     /** Ниже этой похожести глиф не считается цифрой. */
     private const val MIN_SCORE = 0.5
 
+    /** Промежуток между тысячными группами «1 388 737»: измерено 6–7 пикселей, внутри группы 1–3. */
+    private const val GROUP_GAP = 5
+
+    /** С такого промежутка начинается уже не число: на кадрах мусор после числа отстоял на 11. */
+    private const val JUNK_GAP = 9
+
     private const val CW = LootDigitData.WIDTH
     private const val CH = LootDigitData.HEIGHT
 
@@ -34,17 +40,49 @@ internal object LootDigits {
     /**
      * Число в ряду [row]: 0 золото, 1 эликсир, 2 чёрный эликсир.
      * [argb] — кадр высотой ровно [Vision.WORK_HEIGHT] пикселей.
-     * null, если в ряду нет цифр или хоть одну из них не удалось уверенно распознать.
+     * null, если в ряду нет цифр, хоть одну из них не удалось уверенно распознать или число
+     * собралось не целиком.
+     *
+     * Целостность проверяется по разрядам: игра пишет «1 388 737», внутри тысячной группы между
+     * цифрами 1–3 пикселя, между группами 6–7. Первая группа из 1–3 цифр, остальные ровно по 3.
+     * Раньше неуверенные цифры в конце просто отбрасывались, и «1 058 4…» превращалось в «10584»:
+     * база с миллионом считалась бедной. Теперь такое число не читается, а нечитаемое не мешает атаке.
      */
     fun read(argb: IntArray, width: Int, height: Int, row: Int): Int? {
         if (height != Vision.WORK_HEIGHT || row !in LootDigitData.ROW_TOP.indices) return null
         val glyphs = segment(argb, width, row)
         if (glyphs.isEmpty()) return null
-        val parts = glyphs.map { classify(argb, width, it) }.toMutableList()
-        while (parts.isNotEmpty() && parts.last().second < MIN_SCORE) parts.removeAt(parts.size - 1)
-        if (parts.isEmpty() || parts.any { it.second < MIN_SCORE }) return null
+        // Всё, что отстоит дальше обычного промежутка между группами, уже не число (иконка, рамка).
+        var count = glyphs.size
+        for (i in 1 until glyphs.size) {
+            if (glyphs[i].x0 - glyphs[i - 1].x1 >= JUNK_GAP) {
+                count = i
+                break
+            }
+        }
+        val digits = glyphs.take(count)
+        val parts = digits.map { classify(argb, width, it) }
+        if (parts.any { it.second < MIN_SCORE }) return null
+        if (!wellGrouped(digits)) return null
         val text = parts.joinToString("") { it.first.toString() }
         return text.take(9).toIntOrNull()
+    }
+
+    /** Группы разрядов: первая из 1–3 цифр, каждая следующая ровно из 3. */
+    private fun wellGrouped(digits: List<Glyph>): Boolean {
+        val sizes = ArrayList<Int>()
+        var current = 1
+        for (i in 1 until digits.size) {
+            if (digits[i].x0 - digits[i - 1].x1 >= GROUP_GAP) {
+                sizes += current
+                current = 1
+            } else {
+                current++
+            }
+        }
+        sizes += current
+        if (sizes.first() !in 1..3) return false
+        return sizes.drop(1).all { it == 3 }
     }
 
     /** Белая маска: малая насыщенность и высокая яркость, как в HSV OpenCV (0..255). */

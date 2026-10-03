@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">CoC AutoAttack</string>
     <string name="accessibility_label">CoC AutoAttack (тапы)</string>
-    <string name="accessibility_description">Нужна, чтобы бот мог нажимать на экран и высаживать войска в Clash of Clans.</string>
+    <string name="accessibility_description">Нужна, чтобы бот нажимал на экран в Clash of Clans. Бот тапает, только пока игра на экране, а кнопка громкости вниз во время работы останавливает его.</string>
     <string name="notif_channel">Бот</string>
 </resources>

@@ -157,16 +157,33 @@ class ConfigFormatTest {
     @Test
     fun `края по границе карты не вылезают за экран и обходят нижние кнопки`() {
         for (aspect in listOf(1.78f, 2.0f, 2.22f, 2.4f)) {
-            val edges = AttackPreset.mapEdges(aspect)
-            assertEquals(4, edges.size)
-            for (e in edges) {
-                for (t in listOf(0f, 0.5f, 1f)) {
-                    val p = e.at(t)
-                    assertTrue("x=${p.x} при $aspect", p.x in 0f..1f)
-                    assertTrue("y=${p.y} при $aspect", p.y in 0.05f..0.67f)
+            for (reach in listOf(AttackPreset.MAIN_REACH, AttackPreset.OUTER_REACH)) {
+                val edges = AttackPreset.mapEdges(aspect, reach)
+                assertEquals(4, edges.size)
+                for (e in edges) {
+                    for (t in listOf(0f, 0.25f, 0.5f, 0.75f, 1f)) {
+                        val p = e.at(t)
+                        assertTrue("x=${p.x} при $aspect", p.x in 0.03f..0.97f)
+                        assertTrue("y=${p.y} при $aspect", p.y in 0.03f..0.70f)
+                        // Кнопки «Далее» справа внизу и «Закончить / Ускорить / Усилить» слева внизу.
+                        assertTrue("на «Далее»: $p", !(p.x > 0.82f && p.y > 0.63f))
+                        assertTrue("на нижних кнопках: $p", !(p.x < 0.70f && p.y > 0.70f))
+                        // Левый край экрана посередине занят кнопкой «Стоп» бота.
+                        assertTrue("на кнопке «Стоп»: $p", !(p.x < 0.06f && p.y in 0.35f..0.55f))
+                    }
                 }
             }
         }
+    }
+
+    @Test
+    fun `линия добора дальше от центра, чем основная`() {
+        val main = AttackPreset.mapEdges(2.22f, AttackPreset.MAIN_REACH)
+        val outer = AttackPreset.mapEdges(2.22f, AttackPreset.OUTER_REACH)
+        assertTrue(outer[0].x1 < main[0].x1)
+        assertTrue(outer[1].x1 > main[1].x1)
+        assertTrue(outer[0].y2 < main[0].y2)
+        assertTrue(outer[3].y2 > main[3].y2)
     }
 
     @Test

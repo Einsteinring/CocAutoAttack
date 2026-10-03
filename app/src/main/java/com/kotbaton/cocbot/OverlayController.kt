@@ -20,6 +20,7 @@ class OverlayController(private val ctx: Context) {
     private val wm = ctx.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private val handler = Handler(Looper.getMainLooper())
     private var statusView: TextView? = null
+    private var stopView: TextView? = null
     private var calibView: CalibrationView? = null
     private val hideCalibration = Runnable { hideCalibration() }
 
@@ -68,19 +69,66 @@ class OverlayController(private val ctx: Context) {
         }
     }
 
+    /**
+     * Круглая кнопка «Стоп» поверх игры, у левого края экрана посередине. Бот туда никогда не тапает:
+     * края высадки начинаются правее, пузыри сбора у левого края отбрасываются, а кнопки игры
+     * стоят ниже и выше. Это единственное окно бота, которое ловит касания.
+     */
+    fun showStopButton(onClick: () -> Unit) {
+        handler.post {
+            if (!canDraw() || stopView != null) return@post
+            val dm = ctx.resources.displayMetrics
+            val size = (40 * dm.density).toInt()
+            val tv = TextView(ctx).apply {
+                text = "■"
+                gravity = Gravity.CENTER
+                setTextColor(Color.WHITE)
+                textSize = 16f
+                background = android.graphics.drawable.GradientDrawable().apply {
+                    shape = android.graphics.drawable.GradientDrawable.OVAL
+                    setColor(0xE6D32F2F.toInt())
+                    setStroke((2 * dm.density).toInt(), Color.WHITE)
+                }
+                contentDescription = "Остановить бота"
+                setOnClickListener { onClick() }
+            }
+            val p = WindowManager.LayoutParams(
+                size, size,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                PixelFormat.TRANSLUCENT
+            )
+            p.gravity = Gravity.TOP or Gravity.START
+            p.x = 0
+            p.y = (minOf(dm.widthPixels, dm.heightPixels) * 0.42f).toInt()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                p.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
+            try {
+                wm.addView(tv, p)
+                stopView = tv
+            } catch (e: Exception) {
+                BotState.log("Кнопка «Стоп» поверх игры не показана: ${e.message}")
+            }
+        }
+    }
+
     fun updateStatus(text: String) {
         handler.post { statusView?.text = text }
     }
 
     fun hideStatus() {
         handler.post {
-            statusView?.let {
+            listOfNotNull(statusView, stopView).forEach {
                 try {
                     wm.removeView(it)
                 } catch (e: Exception) {
                 }
             }
             statusView = null
+            stopView = null
         }
     }
 

@@ -127,7 +127,8 @@ class BotService : Service() {
         val engine = BotEngine(cfg, preset, cap, vision, { BotAccessibilityService.instance }, { relaunchGame() }, { closeGame() })
         BotState.running.value = true
         if (overlay.canDraw()) {
-            overlay.showStatus("CoC бот") { stopBot("Остановлено через оверлей") }
+            overlay.showStatus("CoC бот") { }
+            overlay.showStopButton { stopBot("Остановлено кнопкой «Стоп» поверх игры") }
         }
 
         val action = intent.action
